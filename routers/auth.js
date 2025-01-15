@@ -1,29 +1,32 @@
-import express from "express"; // No need to import 'Router' separately since you're not using it explicitly
-import User from "../models/User.js"; // 'User' is imported but not used in this code; it can be removed if  
+import express from "express";
+import User from "../models/User.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import Joi from "joi";
+import { OAuth2Client } from "google-auth-library";
 
-const router = express.Router(); // Correct way to create a router instance
+dotenv.config(); // Load environment variables
+
+const router = express.Router();
+ 
 
 // Define Joi schema for validation
 const registerSchema = Joi.object({
   email: Joi.string()
     .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
-    .required(), // Make email required
-  password: Joi.string().min(6).required(), // Password should be required
+    .required(),
+  password: Joi.string().min(6).required(),
   fullname: Joi.string().alphanum().min(3).max(30).required(),
 });
 const loginSchema = Joi.object({
   email: Joi.string()
     .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
-    .required(), // Make email required
-  password: Joi.string().min(6).required() // Password should be required
-   
+    .required(),
+  password: Joi.string().min(6).required(),
 });
 
-// Send response utility function (optional, you can remove it if not needed)
+// Send response utility function
 const sendResponse = (
   res,
   status,
@@ -34,17 +37,15 @@ const sendResponse = (
   res.status(status).json({ data, error, message });
 };
 
+// User Registration API
 router.post("/register", async (req, res) => {
   const { error, value } = registerSchema.validate(req.body);
 
-  console.log("error=>", error);
-
   if (error) {
-    // Joi validation errors are in the 'details' array, so we need to map them
     const errorMessage = error.details
       .map((detail) => detail.message)
       .join(", ");
-    return res.status(400).json({ error: true, message: errorMessage }); // Send error message
+    return res.status(400).json({ error: true, message: errorMessage });
   }
 
   const user = await User.findOne({ email: value.email });
@@ -54,48 +55,37 @@ router.post("/register", async (req, res) => {
       403,
       null,
       true,
-      "User email Allready  in the registerd....."
+      "User email is already registered."
     );
-    const Hashedpasswords = await  bcrypt.hash(value.password , 12);
-    console.log("hashedpasswords: " , Hashedpasswords);
-    value.password = Hashedpasswords
-    let newUser = new User({...value});
-    newUser = await newUser.save();
-    sendResponse(res, 201, newUser, false , "User registered successfully");
-    
-  
+
+  const hashedPassword = await bcrypt.hash(value.password, 12);
+  value.password = hashedPassword;
+  let newUser = new User({ ...value });
+  newUser = await newUser.save();
+  sendResponse(res, 201, newUser, false, "User registered successfully");
 });
+
+// User Login API
 router.post("/login", async (req, res) => {
   const { error, value } = loginSchema.validate(req.body);
-
-  console.log("error=>", error);
-
-  if (error) {
-    // Joi validation errors are in the 'details' array, so we need to map them
-    const errorMessage = error.details
-      .map((detail) => detail.message)
-      .join(", ");
-    return res.status(400).json({ error: true, message: errorMessage }); // Send error message
-  }
+  if (error) return sendResponse(res, 400, null, true, error.message);
 
   const user = await User.findOne({ email: value.email }).lean();
   if (!user)
-    return sendResponse(
-      res,
-      403,
-      null,
-      true,
-      "User is not authenticated "
-    );
-    const ispasswordvalid = await  bcrypt.compare(value.password , user.password);
-    if(!ispasswordvalid) return sendResponse(res, 403,  null,  true , " Invalid Credentials.");
-     
-    var token = jwt.sign( user, process.env.Auth_Secret);
-    sendResponse(res, 200, user , token, true , "User login successfully");
-    
-  
+    return sendResponse(res, 403, null, true, "User is not registered.");
+
+  const isPasswordValid = await bcrypt.compare(value.password, user.password);
+  if (!isPasswordValid)
+    return sendResponse(res, 403, null, true, "Invalid Credentials.");
+
+  const token = jwt.sign({ id: user._id }, process.env.AUTH_SECRET, {
+    expiresIn: "100000d",
+  });
+
+  sendResponse(res, 200, { user, token }, false, "User logged in successfully");
 });
 
+// Google Login API
  
 
 export default router;
