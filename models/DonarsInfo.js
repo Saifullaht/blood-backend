@@ -2,51 +2,80 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
+// Define the schema for donor information
 const donorsInfoSchema = new Schema(
   {
-    email: { type: String, unique: true, required: true },
-    fullname: { type: String, required: true },
-    phoneNumber: { 
-      type: String, 
-      required: true, 
-      unique: true, 
+    email: {
+      type: String,
+      required: true,
+      index: true, // Optional: Add an index for faster searches
+    },
+    fullname: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
       validate: {
         validator: function (v) {
-          // Simple regex to validate a phone number format (e.g., 10-15 digits)
-          return /^\+?[1-9]\d{1,14}$/.test(v); 
+          // Validate international phone number format (e.g., +923001234567)
+          return /^\+?[1-9]\d{1,14}$/.test(v);
         },
         message: (props) => `${props.value} is not a valid phone number!`,
       },
     },
-    gender: { type: String, enum: ["male", "female", "other"], required: true },
-    city: { type: String, required: true },
-    country: { type: String, required: true },
-    dob: { type: Date, required: true },
-    bloodType: { 
-      type: String, 
-      enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], 
-      required: true 
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      required: true,
     },
-    antibodies: { type: [String], default: [] }, // List of antibodies (e.g., "Anti-D")
-    lastDonationDate: { type: Date },
-    donationsCount: { type: Number, default: 0 },
-    healthIssues: { type: String }, // Any health issues that might affect donation
-    profileCompleted: { type: Boolean, default: false },
+    city: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+    dob: {
+      type: Date,
+      required: true,
+      validate: {
+        validator: function (v) {
+          // Ensure the date of birth is not in the future
+          return v <= new Date();
+        },
+        message: (props) => `Date of birth ${props.value} cannot be in the future!`,
+      },
+    },
+    bloodType: {
+      type: String,
+      enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+      required: true,
+    },
+    donationsCount: {
+      type: Number,
+      default: 0,
+    },
     age: {
       type: Number,
-      min: 18, // Minimum donor age
-      max: 65, // Maximum donor age
+      min: 18, // Minimum age for eligibility
+      max: 65, // Maximum age for eligibility
       required: true,
     },
     weight: {
       type: Number,
-      min: 50, // Minimum weight (in kilograms)
+      min: 50, // Minimum weight for eligibility (in kilograms)
       required: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,  
+  }
 );
 
-const Donor = mongoose.model("Donors", donorsInfoSchema);
+// Create the model for donors
+const Donor = mongoose.model("Donor", donorsInfoSchema);
 
 export default Donor;
