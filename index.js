@@ -11,10 +11,14 @@ dotenv.config();  // Load environment variables from .env file
 const PORT = 3008;  // Define port number
 const app = express();  // Create an Express application
 
- 
-app.use(cors());
+// CORS configuration to allow requests from the frontend URL
+app.use(cors({
+  origin: 'https://blood-donate-c5xr.vercel.app',   
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],      // Allowed methods
+  credentials: true, // If using cookies or sessions
+}));
 
-app.use(express.json());  
+app.use(express.json()); // Parse incoming JSON requests
 
 console.log("MongoDB URI=>", process.env.MONGODBURI);  // Log MongoDB URI for checking
 
