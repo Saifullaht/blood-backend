@@ -8,7 +8,7 @@ import DonarsInfoRoutes from "./routers/Donar.js";
 
 dotenv.config();  // Load environment variables from .env file
 
-const PORT = 3008;  // Define port number
+const PORT = process.env.PORT || 3008;  // Define port number
 const app = express();  // Create an Express application
 
 // CORS configuration to allow requests from the frontend URL
