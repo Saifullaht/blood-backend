@@ -12,11 +12,7 @@ const PORT = 3008;  // Define port number
 const app = express();  // Create an Express application
 
 // CORS configuration to allow requests from the frontend URL
-app.use(cors({
-  origin: 'https://blood-donate-c5xr.vercel.app',   
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],       
-  credentials: true, // If using cookies or sessions
-}));
+app.use(cors());
 
 app.use(express.json()); // Parse incoming JSON requests
 
