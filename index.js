@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import cors from "cors";  // Import cors
+import cors from "cors";  
 import authRoutes from "./routers/auth.js";
 import userRoutes from "./routers/users.js";
 import DonarsInfoRoutes from "./routers/Donar.js";
@@ -11,8 +11,14 @@ dotenv.config();  // Load environment variables from .env file
 const PORT = process.env.PORT || 3008;  // Define port number
 const app = express();  // Create an Express application
 
-// CORS configuration to allow requests from the frontend URL
-app.use(cors());
+ 
+
+app.use(
+  cors({
+    origin: "https://blood-donate-c5xr.vercel.app", // Replace with your frontend URL
+    credentials: true, // Allow credentials like cookies
+  })
+);
 
 app.use(express.json()); // Parse incoming JSON requests
 
