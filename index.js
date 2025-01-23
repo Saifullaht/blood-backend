@@ -1,30 +1,43 @@
+// Import required modules
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import cors from "cors";  // Import cors
+import cors from "cors";
 import authRoutes from "./routers/auth.js";
 import userRoutes from "./routers/users.js";
 import DonarsInfoRoutes from "./routers/Donar.js";
 
-dotenv.config();  // Load environment variables from .env file
+// Load environment variables from .env file
+dotenv.config();
 
-const PORT = process.env.PORT || 3008;  // Define port number
-const app = express();  // Create an Express application
+// Define port number
+const PORT = process.env.PORT || 3008;
+
+// Create an Express application
+const app = express();
 
 // CORS configuration to allow requests from the frontend URL
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://blood-donate-c5xr.vercel.app/",  
+    credentials: true,  
+  })
+);
 
-app.use(express.json()); // Parse incoming JSON requests
+// Parse incoming JSON requests
+app.use(express.json());
 
-console.log("MongoDB URI=>", process.env.MONGODBURI);  // Log MongoDB URI for checking
+// Log MongoDB URI for debugging
+console.log("MongoDB URI =>", process.env.MONGODBURI);
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODBURI)
+mongoose
+  .connect(process.env.MONGODBURI)
   .then(() => {
-    console.log("MongoDB connected");  // If connected to MongoDB
+    console.log("MongoDB connected"); // If connected to MongoDB
   })
   .catch((err) => {
-    console.log("Error connecting to MongoDB:", err);  // If there's an error in connecting
+    console.log("Error connecting to MongoDB:", err); // Log MongoDB connection errors
   });
 
 // Basic route for checking if the server is running
@@ -33,11 +46,11 @@ app.get("/", (req, res) => {
 });
 
 // Route handlers
-app.use("/auth", authRoutes);  // Authentication routes
-app.use("/user", userRoutes);  // User-related routes
-app.use("/donarsinfo", DonarsInfoRoutes);  // Blood donors information routes
+app.use("/auth", authRoutes); // Authentication routes
+app.use("/user", userRoutes); // User-related routes
+app.use("/donarsinfo", DonarsInfoRoutes); // Blood donors information routes
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`API is running on port ${PORT}`);  // Log server status
+  console.log(`API is running on port ${PORT}`); // Log server status
 });
