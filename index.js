@@ -11,10 +11,10 @@ dotenv.config();  // Load environment variables from .env file
 const PORT = 3008;  // Define port number
 const app = express();  // Create an Express application
 
-// CORS configuration to allow requests from the frontend URL
+ 
 app.use(cors());
 
-app.use(express.json()); // Parse incoming JSON requests
+app.use(express.json());  
 
 console.log("MongoDB URI=>", process.env.MONGODBURI);  // Log MongoDB URI for checking
 
